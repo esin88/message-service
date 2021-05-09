@@ -1,21 +1,25 @@
 package com.example.message.service.message;
 
 import io.quarkus.test.junit.QuarkusTest;
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 public class MessageControllerTest {
 
     @Test
     public void testHelloEndpoint() {
-        given()
-          .when().get("/message")
-          .then()
-             .statusCode(200)
-             .body(is("Hello RESTEasy"));
+        var response = given()
+            .when().get("/message/all");
+
+        assertEquals(HttpStatus.SC_OK, response.statusCode());
+        final var messageListResponse = response.as(MessageListResponse.class);
+        assertNotNull(messageListResponse);
+        assertNotNull(messageListResponse.messages);
     }
 
 }
