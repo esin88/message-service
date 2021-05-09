@@ -1,5 +1,3 @@
-This README.md file and all the Dockerfiles in [src/main/docker](src/main/docker) are generated automatically by Quarkus framework.
-
 # message-service project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
@@ -13,44 +11,63 @@ You can run your application in dev mode that enables live coding using:
 ./mvnw compile quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
-
-## Packaging and running the application
-
-The application can be packaged using:
-```shell script
+## Building and running docker image
+```
 ./mvnw package
 ```
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
-
-If you want to build an _über-jar_, execute the following command:
-```shell script
-./mvnw package -Dquarkus.package.type=uber-jar
+```
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/message-service-jvm .
+```
+```
+docker run -i --rm -p 8080:8080 quarkus/message-service-jvm
 ```
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-## Creating a native executable
-
-You can create a native executable using: 
-```shell script
-./mvnw package -Pnative
+## Calling the service
+### Getting all messages
+Does not require any authentication
+```
+curl -i -X GET  'http://localhost:8080/message/all'
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
+### Getting message by id
+Does not require any authentication
+```
+ID=1                                                                                                                   
+curl -i -X GET  "http://localhost:8080/message/$ID"
 ```
 
-You can then execute your native executable with: `./target/message-service-1.0.0-SNAPSHOT-runner`
+### Authenticating as existing user
+Pre-created user name is `bob` with password `password`.
 
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.html.
+For simplicity and testability HTTP Basic Authentication is used.
+```
+AUTH=$(printf "%s" 'bob:password' | base64)
+```
 
-## Provided examples
+### Creating new message
+Requires authentication
+```
+curl -i -X POST --header "Authorization: Basic $AUTH" 'http://localhost:8080/message'  \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "header": "message header",
+    "body": "message body"
+}'
+```
 
-### RESTEasy JAX-RS example
+### Editing an existing message
+Requires authentication
+```
+curl -i -X PUT --header "Authorization: Basic $AUTH" 'http://localhost:8080/message/1'  \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "header": "new header",
+    "body": "new body"
+}'
+```
 
-REST is easy peasy with this Hello World RESTEasy resource.
-
-[Related guide section...](https://quarkus.io/guides/getting-started#the-jax-rs-resources)
+### Deleting a message
+Requires authentication
+```
+curl -i -X DELETE --header "Authorization: Basic $AUTH" 'http://localhost:8080/message/1'
+```
