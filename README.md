@@ -32,7 +32,7 @@ curl -i -X GET  'http://localhost:8080/message/all'
 ### Getting message by id
 Does not require any authentication
 ```
-ID=1                                                                                                                   
+ID=1
 curl -i -X GET  "http://localhost:8080/message/$ID"
 ```
 
