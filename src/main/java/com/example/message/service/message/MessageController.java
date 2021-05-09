@@ -45,6 +45,10 @@ public class MessageController {
     @RolesAllowed("user")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(MessageRequest request) {
+        if (request.header == null || request.header.isEmpty()
+            || request.body == null || request.body.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         messageService.create(identity.getPrincipal().getName(), request);
         return Response.ok().build();
     }
@@ -54,6 +58,10 @@ public class MessageController {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam int id, MessageRequest request) {
+        if (request.header == null || request.header.isEmpty()
+            || request.body == null || request.body.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         messageService.update(identity.getPrincipal().getName(), id, request);
         return Response.ok().build();
     }

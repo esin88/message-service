@@ -8,6 +8,9 @@ import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
@@ -17,7 +20,8 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 @QuarkusTest
 public class MessageControllerTest {
@@ -103,15 +107,41 @@ public class MessageControllerTest {
 
     @Test
     void createDoesntWorkWithoutAuthentication() {
-        var messageRequest = new MessageRequest("head", "body");
-
         var response = given()
             .when()
             .contentType(ContentType.JSON)
-            .body(messageRequest)
+            .body(new MessageRequest("head", "body"))
             .post("/message/");
 
         assertEquals(HttpStatus.SC_UNAUTHORIZED, response.statusCode());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {""})
+    @TestSecurity(user = NEW_USER, roles = {"user"})
+    void createReturnsBadRequestIfHeaderIsNullOrEmpty(String header) {
+        var response = given()
+            .when()
+            .contentType(ContentType.JSON)
+            .body(new MessageRequest(header, "body"))
+            .post("/message/");
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.statusCode());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {""})
+    @TestSecurity(user = NEW_USER, roles = {"user"})
+    void createReturnsBadRequestIfBodyIsNullOrEmpty(String body) {
+        var response = given()
+            .when()
+            .contentType(ContentType.JSON)
+            .body(new MessageRequest("header", body))
+            .post("/message/");
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.statusCode());
     }
 
     @Test
@@ -165,6 +195,34 @@ public class MessageControllerTest {
             .put("/message/" + NON_EXISTING_MESSAGE_ID);
 
         assertEquals(HttpStatus.SC_NOT_FOUND, response.statusCode());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {""})
+    @TestSecurity(user = EXISTING_USER, roles = {"user"})
+    void updateReturnsBadRequestIfHeaderIsNullOrEmpty(String header) {
+        var response = given()
+            .when()
+            .contentType(ContentType.JSON)
+            .body(new MessageRequest(header, "body"))
+            .put("/message/" + EXISTING_MESSAGE_ID);
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.statusCode());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {""})
+    @TestSecurity(user = EXISTING_USER, roles = {"user"})
+    void updateReturnsBadRequestIfBodyIsNullOrEmpty(String body) {
+        var response = given()
+            .when()
+            .contentType(ContentType.JSON)
+            .body(new MessageRequest("header", body))
+            .put("/message/" + EXISTING_MESSAGE_ID);
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.statusCode());
     }
 
     @Test
