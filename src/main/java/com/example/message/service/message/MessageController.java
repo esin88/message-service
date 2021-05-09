@@ -7,11 +7,13 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -25,14 +27,10 @@ public class MessageController {
     @GET
     @Path("/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public MessageListResponse getAll(@PathParam int limit, @PathParam int offset) {
-        return getAllLimitOffset(100, 0);
-    }
-
-    @GET
-    @Path("/all/{limit}/{offset}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public MessageListResponse getAllLimitOffset(@PathParam int limit, @PathParam int offset) {
+    public MessageListResponse getAll(
+        @DefaultValue("100") @QueryParam("limit") int limit,
+        @DefaultValue("0") @QueryParam("offset") int offset
+    ) {
         return messageService.getAll(limit, offset);
     }
 

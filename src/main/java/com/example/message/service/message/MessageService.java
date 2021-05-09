@@ -2,12 +2,12 @@ package com.example.message.service.message;
 
 import io.quarkus.security.UnauthorizedException;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.util.stream.Collectors;
 
-@Singleton
+@ApplicationScoped
 public class MessageService {
     @Inject
     MessageRepository repository;
