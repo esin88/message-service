@@ -56,7 +56,8 @@ curl -i -X POST --header "Authorization: Basic $AUTH" 'http://localhost:8080/mes
 ### Editing an existing message
 Requires authentication
 ```
-curl -i -X PUT --header "Authorization: Basic $AUTH" 'http://localhost:8080/message/1'  \
+ID=1
+curl -i -X PUT --header "Authorization: Basic $AUTH" "http://localhost:8080/message/$ID"  \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "header": "new header",
@@ -67,5 +68,6 @@ curl -i -X PUT --header "Authorization: Basic $AUTH" 'http://localhost:8080/mess
 ### Deleting a message
 Requires authentication
 ```
-curl -i -X DELETE --header "Authorization: Basic $AUTH" 'http://localhost:8080/message/1'
+ID=1
+curl -i -X DELETE --header "Authorization: Basic $AUTH" "http://localhost:8080/message/$ID"
 ```
