@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MessageRepositoryInMemory implements MessageRepository {
-    private static final AtomicLong ID_GENERATOR = new AtomicLong(1L);
+    private static final AtomicLong ID_GENERATOR = new AtomicLong();
     private final LinkedHashMap<Long, MessageEntity> messages = new LinkedHashMap<>();
 
     @Override
@@ -30,11 +30,12 @@ public class MessageRepositoryInMemory implements MessageRepository {
     }
 
     @Override
-    public void create(MessageEntity message) {
+    public long create(MessageEntity message) {
         message.setId(ID_GENERATOR.getAndIncrement());
         synchronized (messages) {
             messages.put(message.getId(), message);
         }
+        return message.getId();
     }
 
     @Override

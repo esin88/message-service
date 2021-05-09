@@ -8,7 +8,7 @@ public interface MessageRepository {
 
     Optional<MessageEntity> getById(long id);
 
-    void create(MessageEntity message);
+    long create(MessageEntity message);
 
     void update(MessageEntity message);
 
