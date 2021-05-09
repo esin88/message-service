@@ -1,5 +1,6 @@
 package com.example.message.service.message;
 
+import io.quarkus.security.UnauthorizedException;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
@@ -8,15 +9,15 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.ws.rs.NotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class MessageControllerTest {
@@ -29,19 +30,17 @@ public class MessageControllerTest {
     private static final long LIST_MESSAGE_ID_3 = 3L;
 
     @InjectMock
-    MessageRepository repository;
+    MessageService service;
 
     @BeforeEach
     void setupGetMessageById() {
-        var entity = createMessageEntity(EXISTING_MESSAGE_ID);
-        doReturn(Optional.of(entity))
-            .when(repository).getById(eq(entity.getId()));
+        doReturn(createResponse(EXISTING_MESSAGE_ID)).when(service).getById(eq(EXISTING_MESSAGE_ID));
     }
 
     @Test
     void getAllWorksWithoutAuthentication() {
-        doReturn(List.of(createMessageEntity(LIST_MESSAGE_ID_2), createMessageEntity(LIST_MESSAGE_ID_3)))
-            .when(repository).getAll(anyInt(), anyInt());
+        doReturn(createListResponse(createResponse(LIST_MESSAGE_ID_2), createResponse(LIST_MESSAGE_ID_3)))
+            .when(service).getAll(anyInt(), anyInt());
 
         var response = given()
             .when().get("/message/all");
@@ -55,8 +54,8 @@ public class MessageControllerTest {
 
     @Test
     void getLimitWorksWithoutAuthentication() {
-        doReturn(List.of(createMessageEntity(LIST_MESSAGE_ID_2)))
-            .when(repository).getAll(eq(1), anyInt());
+        doReturn(createListResponse(createResponse(LIST_MESSAGE_ID_2)))
+            .when(service).getAll(eq(1), anyInt());
 
         var response = given()
             .when().get("/message/all?limit=1");
@@ -69,8 +68,8 @@ public class MessageControllerTest {
 
     @Test
     void getLimitOffsetWorksWithoutAuthentication() {
-        doReturn(List.of(createMessageEntity(LIST_MESSAGE_ID_3)))
-            .when(repository).getAll(eq(1), eq(1));
+        doReturn(createListResponse(createResponse(LIST_MESSAGE_ID_3)))
+            .when(service).getAll(eq(1), eq(1));
 
         var response = given()
             .when().get("/message/all?limit=1&offset=1");
@@ -93,8 +92,8 @@ public class MessageControllerTest {
 
     @Test
     void getByIdReturns404ForNonExistingId() {
-        doReturn(Optional.empty())
-            .when(repository).getById(anyInt());
+        doThrow(NotFoundException.class)
+            .when(service).getById(anyLong());
 
         var response = given()
             .when().get("/message/" + NON_EXISTING_MESSAGE_ID);
@@ -141,6 +140,9 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void updateDoesntWorkWithWrongUser() {
+        doThrow(UnauthorizedException.class)
+            .when(service).update(anyString(), anyLong(), any());
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
@@ -153,8 +155,8 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void updateThrows404ForWrongMessageId() {
-        doReturn(Optional.empty())
-            .when(repository).getById(anyInt());
+        doThrow(NotFoundException.class)
+            .when(service).update(anyString(), anyLong(), any());
 
         var response = given()
             .when()
@@ -191,6 +193,9 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void deleteDoesntWorkWithWrongUser() {
+        doThrow(UnauthorizedException.class)
+            .when(service).delete(anyString(), anyLong());
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
@@ -203,8 +208,8 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void deleteThrows404ForWrongMessageId() {
-        doReturn(null)
-            .when(repository).getById(anyInt());
+        doThrow(NotFoundException.class)
+            .when(service).delete(anyString(), anyLong());
 
         var response = given()
             .when()
@@ -227,13 +232,11 @@ public class MessageControllerTest {
         assertEquals(HttpStatus.SC_OK, response.statusCode());
     }
 
-    private static MessageEntity createMessageEntity(long id) {
-        var entity = new MessageEntity(
-            EXISTING_USER,
-            "header",
-            "body"
-        );
-        entity.setId(id);
-        return entity;
+    private static MessageResponse createResponse(long id) {
+        return new MessageResponse(id, EXISTING_USER, "header", "body", LocalDateTime.now(), null);
+    }
+
+    private static MessageListResponse createListResponse(MessageResponse... responses) {
+        return new MessageListResponse(List.of(responses));
     }
 }
