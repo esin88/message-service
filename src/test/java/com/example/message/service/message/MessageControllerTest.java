@@ -20,8 +20,7 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class MessageControllerTest {
@@ -51,6 +50,7 @@ public class MessageControllerTest {
 
         assertEquals(HttpStatus.SC_OK, response.statusCode());
         final var messageListResponse = response.as(MessageListResponse.class);
+        verify(service).getAll(eq(100), eq(0));
         assertNotNull(messageListResponse);
         assertNotNull(messageListResponse.messages);
         assertEquals(2, messageListResponse.messages.size());
