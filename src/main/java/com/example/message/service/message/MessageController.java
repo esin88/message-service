@@ -37,7 +37,7 @@ public class MessageController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public MessageResponse getById(@PathParam int id) {
+    public MessageResponse getById(@PathParam long id) {
         return messageService.getById(id);
     }
 

@@ -1,17 +1,21 @@
 package com.example.message.service.message;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import javax.inject.Inject;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @QuarkusTest
@@ -19,23 +23,14 @@ public class MessageControllerTest {
     private static final String EXISTING_USER = "bob";
     private static final String NEW_USER = "tester";
 
-    @Inject
+    @InjectMock
     MessageRepository repository;
-    private long existingId1;
-    private long existingId2;
-
-    @BeforeAll
-    void setup() {
-        var entity1 = createMessageEntity(1);
-        existingId1 = entity1.getId();
-        repository.create(entity1);
-        var entity2 = createMessageEntity(2);
-        existingId2 = entity2.getId();
-        repository.create(entity2);
-    }
 
     @Test
     void getAllWorksWithoutAuthentication() {
+        doReturn(List.of(createMessageEntity(), createMessageEntity()))
+            .when(repository).getAll(anyInt(), anyInt());
+
         var response = given()
             .when().get("/message/all");
 
@@ -43,43 +38,58 @@ public class MessageControllerTest {
         final var messageListResponse = response.as(MessageListResponse.class);
         assertNotNull(messageListResponse);
         assertNotNull(messageListResponse.messages);
-        assertTrue(messageListResponse.messages.size() >= 2);
+        assertEquals(2, messageListResponse.messages.size());
     }
 
     @Test
     void getLimitWorksWithoutAuthentication() {
+        var entity = createMessageEntity();
+        doReturn(List.of(entity))
+            .when(repository).getAll(eq(1), anyInt());
+
         var response = given()
             .when().get("/message/all?limit=1");
 
         assertEquals(HttpStatus.SC_OK, response.statusCode());
         final var messageListResponse = response.as(MessageListResponse.class);
         assertEquals(1, messageListResponse.messages.size());
+        assertEquals(entity.getId(), messageListResponse.messages.get(0).id);
     }
 
     @Test
     void getLimitOffsetWorksWithoutAuthentication() {
+        var entity = createMessageEntity();
+        doReturn(List.of(entity))
+            .when(repository).getAll(eq(1), eq(1));
+
         var response = given()
             .when().get("/message/all?limit=1&offset=1");
 
         assertEquals(HttpStatus.SC_OK, response.statusCode());
         final var messageListResponse = response.as(MessageListResponse.class);
         assertEquals(1, messageListResponse.messages.size());
+        assertEquals(entity.getId(), messageListResponse.messages.get(0).id);
     }
 
     @Test
     void getByIdWorksWithoutAuthentication() {
+        var entity = setupEntityById();
+
         var response = given()
-            .when().get("/message/" + existingId1);
+            .when().get("/message/" + entity.getId());
 
         assertEquals(HttpStatus.SC_OK, response.statusCode());
         final var messageResponse = response.as(MessageResponse.class);
-        assertEquals(existingId1, messageResponse.id);
+        assertEquals(entity.getId(), messageResponse.id);
     }
 
     @Test
     void getByIdReturns404ForNonExistingId() {
+        doReturn(null)
+            .when(repository).getById(anyInt());
+
         var response = given()
-            .when().get("/message/888");
+            .when().get("/message/1");
 
         assertEquals(HttpStatus.SC_NOT_FOUND, response.statusCode());
     }
@@ -111,11 +121,13 @@ public class MessageControllerTest {
 
     @Test
     void updateDoesntWorkWithoutAuthentication() {
+        var entity = setupEntityById();
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
             .body(new MessageRequest("head", "body"))
-            .put("/message/" + existingId2);
+            .put("/message/" + entity.getId());
 
         assertEquals(HttpStatus.SC_UNAUTHORIZED, response.statusCode());
     }
@@ -123,11 +135,13 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void updateDoesntWorkWithWrongUser() {
+        var entity = setupEntityById();
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
             .body(new MessageRequest("head", "body"))
-            .put("/message/" + existingId2);
+            .put("/message/" + entity.getId());
 
         assertEquals(HttpStatus.SC_UNAUTHORIZED, response.statusCode());
     }
@@ -135,11 +149,14 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void updateThrows404ForWrongMessageId() {
+        doReturn(null)
+            .when(repository).getById(anyInt());
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
             .body(new MessageRequest("head", "body"))
-            .put("/message/888");
+            .put("/message/1");
 
         assertEquals(HttpStatus.SC_NOT_FOUND, response.statusCode());
     }
@@ -147,22 +164,26 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = EXISTING_USER, roles = {"user"})
     void updateWorksWithRightUser() {
+        var entity = setupEntityById();
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
             .body(new MessageRequest("head", "body"))
-            .put("/message/" + existingId2);
+            .put("/message/" + entity.getId());
 
         assertEquals(HttpStatus.SC_OK, response.statusCode());
     }
 
     @Test
     void deleteDoesntWorkWithoutAuthentication() {
+        var entity = setupEntityById();
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
             .body(new MessageRequest("head", "body"))
-            .delete("/message/" + existingId2);
+            .delete("/message/" + entity.getId());
 
         assertEquals(HttpStatus.SC_UNAUTHORIZED, response.statusCode());
     }
@@ -170,11 +191,13 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void deleteDoesntWorkWithWrongUser() {
+        var entity = setupEntityById();
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
             .body(new MessageRequest("head", "body"))
-            .delete("/message/" + existingId2);
+            .delete("/message/" + entity.getId());
 
         assertEquals(HttpStatus.SC_UNAUTHORIZED, response.statusCode());
     }
@@ -182,6 +205,9 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void deleteThrows404ForWrongMessageId() {
+        doReturn(null)
+            .when(repository).getById(anyInt());
+
         var response = given()
             .when()
             .contentType(ContentType.JSON)
@@ -194,24 +220,29 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = EXISTING_USER, roles = {"user"})
     void deleteWorksWithRightUser() {
-        var newEntity = createMessageEntity(3);
-        var newEntityId = newEntity.getId();
-        repository.create(newEntity);
+        var entity = setupEntityById();
 
         var response = given()
             .when()
             .contentType(ContentType.JSON)
             .body(new MessageRequest("head", "body"))
-            .delete("/message/" + newEntityId);
+            .delete("/message/" + entity.getId());
 
         assertEquals(HttpStatus.SC_OK, response.statusCode());
     }
 
-    private static MessageEntity createMessageEntity(int number) {
+    private MessageEntity setupEntityById() {
+        var entity = createMessageEntity();
+        doReturn(entity)
+            .when(repository).getById(eq(entity.getId()));
+        return entity;
+    }
+
+    private static MessageEntity createMessageEntity() {
         return new MessageEntity(
             EXISTING_USER,
-            "header " + number,
-            "body " + number
+            "header",
+            "body"
         );
     }
 }
