@@ -1,11 +1,12 @@
 package com.example.message.service.message;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MessageRepository {
     List<MessageEntity> getAll(int limit, int offset);
 
-    MessageEntity getById(long id);
+    Optional<MessageEntity> getById(long id);
 
     void create(MessageEntity message);
 

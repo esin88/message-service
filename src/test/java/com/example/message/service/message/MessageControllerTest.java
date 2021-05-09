@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,7 +86,7 @@ public class MessageControllerTest {
 
     @Test
     void getByIdReturns404ForNonExistingId() {
-        doReturn(null)
+        doReturn(Optional.empty())
             .when(repository).getById(anyInt());
 
         var response = given()
@@ -149,7 +150,7 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void updateThrows404ForWrongMessageId() {
-        doReturn(null)
+        doReturn(Optional.empty())
             .when(repository).getById(anyInt());
 
         var response = given()
@@ -233,7 +234,7 @@ public class MessageControllerTest {
 
     private MessageEntity setupEntityById() {
         var entity = createMessageEntity();
-        doReturn(entity)
+        doReturn(Optional.of(entity))
             .when(repository).getById(eq(entity.getId()));
         return entity;
     }

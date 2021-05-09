@@ -3,6 +3,7 @@ package com.example.message.service.message;
 import javax.enterprise.context.ApplicationScoped;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -22,8 +23,8 @@ public class MessageRepositoryInMemory implements MessageRepository {
     }
 
     @Override
-    public MessageEntity getById(long id) {
-        return messages.get(id);
+    public Optional<MessageEntity> getById(long id) {
+        return Optional.ofNullable(messages.get(id));
     }
 
     @Override

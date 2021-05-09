@@ -48,10 +48,7 @@ public class MessageService {
 
     private MessageEntity getMessageOrThrow(long messageId) {
         var message = repository.getById(messageId);
-        if (message == null) {
-            throw new NotFoundException();
-        }
-        return message;
+        return message.orElseThrow(NotFoundException::new);
     }
 
     private static MessageResponse entityToResponse(MessageEntity entity) {
