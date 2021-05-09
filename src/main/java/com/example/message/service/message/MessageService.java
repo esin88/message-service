@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class MessageService {
     @Inject
-    MessageRepository repository;
+    private MessageRepository repository;
 
     public MessageListResponse getAll(int limit, int offset) {
         return repository.getAll(limit, offset).stream()

@@ -4,10 +4,12 @@ import javax.enterprise.context.ApplicationScoped;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MessageRepositoryInMemory implements MessageRepository {
+    private static final AtomicLong ID_GENERATOR = new AtomicLong(1L);
     private final LinkedHashMap<Long, MessageEntity> messages = new LinkedHashMap<>();
 
     @Override
@@ -29,6 +31,7 @@ public class MessageRepositoryInMemory implements MessageRepository {
 
     @Override
     public void create(MessageEntity message) {
+        message.setId(ID_GENERATOR.getAndIncrement());
         synchronized (messages) {
             messages.put(message.getId(), message);
         }

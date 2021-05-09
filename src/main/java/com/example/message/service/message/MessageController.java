@@ -20,9 +20,9 @@ import javax.ws.rs.core.Response;
 @Path("/message")
 public class MessageController {
     @Inject
-    MessageService messageService;
+    private MessageService messageService;
     @Inject
-    SecurityIdentity identity;
+    private SecurityIdentity identity;
 
     @GET
     @Path("/all")

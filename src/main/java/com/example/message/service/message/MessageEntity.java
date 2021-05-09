@@ -1,12 +1,9 @@
 package com.example.message.service.message;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class MessageEntity {
-    private static final AtomicLong ID_GENERATOR = new AtomicLong(1L);
-
-    private final long id;
+    private long id;
     private final String ownerName;
     private String header;
     private String body;
@@ -14,7 +11,6 @@ public class MessageEntity {
     private LocalDateTime editedAt;
 
     public MessageEntity(String ownerName, String header, String body) {
-        this.id = ID_GENERATOR.getAndIncrement();
         this.ownerName = ownerName;
         this.header = header;
         this.body = body;
@@ -30,6 +26,10 @@ public class MessageEntity {
 
     public long getId() {
         return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getOwnerName() {
