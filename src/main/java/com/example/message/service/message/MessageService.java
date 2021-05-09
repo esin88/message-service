@@ -7,6 +7,8 @@ import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.collectingAndThen;
+
 @ApplicationScoped
 public class MessageService {
     @Inject
@@ -15,7 +17,7 @@ public class MessageService {
     public MessageListResponse getAll(int limit, int offset) {
         return repository.getAll(limit, offset).stream()
             .map(MessageService::entityToResponse)
-            .collect(Collectors.collectingAndThen(Collectors.toList(), MessageListResponse::new));
+            .collect(collectingAndThen(Collectors.toList(), MessageListResponse::new));
     }
 
     public MessageResponse getById(long messageId) {

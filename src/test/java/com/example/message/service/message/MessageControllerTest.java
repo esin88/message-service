@@ -7,7 +7,6 @@ import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +18,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @QuarkusTest
 public class MessageControllerTest {
     private static final String EXISTING_USER = "bob";
