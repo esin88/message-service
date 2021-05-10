@@ -1,7 +1,10 @@
 package com.example.message.service.message;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 
+@Schema(title = "Message response")
 public class MessageResponse {
     public long id;
     public String author;

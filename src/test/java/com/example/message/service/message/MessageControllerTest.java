@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -170,7 +171,7 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void updateDoesntWorkWithWrongUser() {
-        doThrow(UnauthorizedException.class)
+        doThrow(ForbiddenException.class)
             .when(service).update(anyString(), anyLong(), any());
 
         var response = given()
@@ -179,7 +180,7 @@ public class MessageControllerTest {
             .body(new MessageRequest("head", "body"))
             .put("/message/" + EXISTING_MESSAGE_ID);
 
-        assertEquals(HttpStatus.SC_UNAUTHORIZED, response.statusCode());
+        assertEquals(HttpStatus.SC_FORBIDDEN, response.statusCode());
     }
 
     @Test
@@ -251,7 +252,7 @@ public class MessageControllerTest {
     @Test
     @TestSecurity(user = NEW_USER, roles = {"user"})
     void deleteDoesntWorkWithWrongUser() {
-        doThrow(UnauthorizedException.class)
+        doThrow(ForbiddenException.class)
             .when(service).delete(anyString(), anyLong());
 
         var response = given()
@@ -260,7 +261,7 @@ public class MessageControllerTest {
             .body(new MessageRequest("head", "body"))
             .delete("/message/" + EXISTING_MESSAGE_ID);
 
-        assertEquals(HttpStatus.SC_UNAUTHORIZED, response.statusCode());
+        assertEquals(HttpStatus.SC_FORBIDDEN, response.statusCode());
     }
 
     @Test

@@ -1,9 +1,8 @@
 package com.example.message.service.message;
 
-import io.quarkus.security.UnauthorizedException;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
 import java.util.stream.Collectors;
 
@@ -12,7 +11,7 @@ import static java.util.stream.Collectors.collectingAndThen;
 @ApplicationScoped
 public class MessageService {
     @Inject
-    private MessageRepository repository;
+    MessageRepository repository;
 
     public MessageListResponse getAll(int limit, int offset) {
         return repository.getAll(limit, offset).stream()
@@ -43,7 +42,7 @@ public class MessageService {
     private MessageEntity getMessageForOwner(String userName, long messageId) {
         var message = getMessageOrThrow(messageId);
         if (!message.getOwnerName().equals(userName)) {
-            throw new UnauthorizedException();
+            throw new ForbiddenException();
         }
         return message;
     }

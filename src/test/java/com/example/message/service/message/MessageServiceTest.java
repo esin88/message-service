@@ -1,12 +1,12 @@
 package com.example.message.service.message;
 
-import io.quarkus.security.UnauthorizedException;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 
 import javax.inject.Inject;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
 import java.util.Optional;
 
@@ -69,7 +69,7 @@ public class MessageServiceTest {
     void updateThrowsExceptionIfWrongOwner() {
         doReturn(Optional.of(getEntity())).when(repository).getById(eq(MESSAGE_ID));
 
-        assertThrows(UnauthorizedException.class, () -> service.update(WRONG_USER, MESSAGE_ID, getRequest()));
+        assertThrows(ForbiddenException.class, () -> service.update(WRONG_USER, MESSAGE_ID, getRequest()));
 
         verify(repository).getById(eq(MESSAGE_ID));
         verify(repository, never()).update(argThat(ENTITY_MATCHER));
@@ -100,7 +100,7 @@ public class MessageServiceTest {
     void deleteThrowsExceptionIfWrongOwner() {
         doReturn(Optional.of(getEntity())).when(repository).getById(eq(MESSAGE_ID));
 
-        assertThrows(UnauthorizedException.class, () -> service.delete(WRONG_USER, MESSAGE_ID));
+        assertThrows(ForbiddenException.class, () -> service.delete(WRONG_USER, MESSAGE_ID));
 
         verify(repository).getById(eq(MESSAGE_ID));
         verify(repository, never()).delete(eq(MESSAGE_ID));

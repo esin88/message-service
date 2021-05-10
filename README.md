@@ -21,6 +21,14 @@ docker run -i --rm -p 8080:8080 quarkus/message-service-jvm
 ```
 
 ## Calling the service
+
+### Quarkus-generated Swagger-UI
+After running the app, go to http://localhost:8080/q/swagger-ui/ to see controller, requests and responses specifications.
+
+It's also possible to call API endpoints there.
+
+For endpoints, that require authentication, use `bob`:`qwerty`.
+
 ### Getting all messages
 Does not require any authentication
 ```
@@ -35,11 +43,11 @@ curl -i -X GET  "http://localhost:8080/message/$ID"
 ```
 
 ### Authenticating as existing user
-Pre-created user name is `bob` with password `password`.
+Pre-created username is `bob` with password `qwerty`.
 
 For simplicity and testability HTTP Basic Authentication is used.
 ```
-AUTH=$(printf "%s" 'bob:password' | base64)
+AUTH=$(printf "%s" 'bob:qwerty' | base64)
 ```
 
 ### Creating new message
