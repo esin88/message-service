@@ -1,6 +1,5 @@
 package com.example.message.service.message;
 
-import io.quarkus.security.UnauthorizedException;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
@@ -18,8 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -155,6 +153,9 @@ public class MessageControllerTest {
             .post("/message/");
 
         assertEquals(HttpStatus.SC_OK, response.statusCode());
+        var messageIdStr = response.getBody().asString();
+        assertNotNull(messageIdStr);
+        assertDoesNotThrow(() -> Long.parseLong(messageIdStr));
     }
 
     @Test

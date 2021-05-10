@@ -24,8 +24,8 @@ public class MessageService {
         return entityToResponse(message);
     }
 
-    public void create(String userName, MessageRequest request) {
-        repository.create(new MessageEntity(userName, request.header, request.body));
+    public long create(String userName, MessageRequest request) {
+        return repository.create(new MessageEntity(userName, request.header, request.body));
     }
 
     public void update(String userName, long messageId, MessageRequest request) {

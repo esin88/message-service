@@ -78,7 +78,8 @@ public class MessageController {
     @APIResponses(value = {
         @APIResponse(
             responseCode = "200",
-            description = "Message successfully created"
+            description = "Message successfully created. Response content is new message id",
+            content = {@Content(mediaType = "text/plain", example = "0, 1, 2 etc.")}
         ),
         @APIResponse(
             responseCode = "400",
@@ -93,13 +94,14 @@ public class MessageController {
     @POST
     @RolesAllowed("user")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     public Response create(MessageRequest request) {
         if (request.header == null || request.header.isEmpty()
             || request.body == null || request.body.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        messageService.create(identity.getPrincipal().getName(), request);
-        return Response.ok().build();
+        var messageId = this.messageService.create(identity.getPrincipal().getName(), request);
+        return Response.ok(messageId).build();
     }
 
     @Operation(summary = "Update message with specified id")
